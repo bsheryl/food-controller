@@ -3,24 +3,27 @@
 package com.bsheryl.foodcontroller
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
@@ -41,11 +44,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.bsheryl.foodcontroller.viewmodel.DishViewModel
+import com.bsheryl.foodcontroller.viewmodel.MealViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -67,6 +77,19 @@ val formatter = SimpleDateFormat("yyyy-MM-dd")
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
+    val owner = LocalViewModelStoreOwner.current
+    owner?.let {
+        val dishViewModel: DishViewModel = viewModel(
+            it,
+            "DishViewModel",
+            DishViewModelFactory(LocalContext.current.applicationContext as Application)
+        )
+        val mealViewModel: MealViewModel = viewModel(
+            it,
+            "MealViewModel",
+            MealViewModelFactory(LocalContext.current.applicationContext as Application)
+        )
+    }
     var showDialog by remember { mutableStateOf(false) }
     var date by remember { mutableStateOf(formatter.format(Date()))}
     val datePickerState = rememberDatePickerState()
@@ -124,7 +147,112 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                     )
                 }
             }
-            Text(text ="Здесь будут каллории", fontSize = 28.sp, modifier = Modifier.padding(it))
+//            Text(text ="Здесь будут каллории", fontSize = 28.sp, modifier = Modifier.padding(it))
+            Box(modifier = Modifier.fillMaxWidth().padding(it),
+                contentAlignment = Alignment.Center,) {
+                Column() {
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(10.dp)
+                                .border(
+                                    width = 2.dp,
+                                    color = Color.DarkGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .padding(10.dp)
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .align(alignment = Alignment.CenterStart),
+                                fontSize = 20.sp,
+                                text = "Белки"
+                            )
+                            Text(
+                                modifier = Modifier
+                                    .align(alignment = Alignment.CenterEnd),
+                                fontSize = 20.sp,
+                                text = "0/0"
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(10.dp)
+                                .border(
+                                    width = 2.dp,
+                                    color = Color.DarkGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .padding(10.dp)
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .align(alignment = Alignment.CenterStart),
+                                fontSize = 20.sp,
+                                text = "Жиры"
+                            )
+                            Text(
+                                modifier = Modifier
+                                    .align(alignment = Alignment.CenterEnd),
+                                fontSize = 20.sp,
+                                text = "0/0"
+                            )
+                        }
+                    }
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(10.dp)
+                                .border(
+                                    width = 2.dp,
+                                    color = Color.DarkGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .padding(10.dp)
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .align(alignment = Alignment.CenterStart),
+                                fontSize = 20.sp,
+                                text = "Углеводы"
+                            )
+                            Text(
+                                modifier = Modifier
+                                    .align(alignment = Alignment.CenterEnd),
+                                fontSize = 20.sp,
+                                text = "0/0"
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(10.dp)
+                                .border(
+                                    width = 2.dp,
+                                    color = Color.DarkGray,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .padding(10.dp)
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .align(alignment = Alignment.CenterStart),
+                                fontSize = 20.sp,
+                                text = "Калории"
+                            )
+                            Text(
+                                modifier = Modifier
+                                    .align(alignment = Alignment.CenterEnd),
+                                fontSize = 20.sp,
+                                text = "0/0"
+                            )
+                        }
+                    }
+                }
+            }
             Text(text ="Здесь будут блюда", fontSize = 28.sp, modifier = Modifier.padding(it))
         }
         if (showDialog) {
@@ -165,6 +293,18 @@ fun addDay(date: String, delta: Int): String {
     calendar.time = formatter.parse(date)!!  // Parse string to Date
     calendar.add(Calendar.DATE, delta)   // Subtract 1 day
     return formatter.format(calendar.time)
+}
+
+class DishViewModelFactory(val application: Application): ViewModelProvider.Factory {
+    override fun <T: ViewModel> create(modelClass: Class<T>): T {
+        return DishViewModel(application) as T
+    }
+}
+
+class MealViewModelFactory(val application: Application): ViewModelProvider.Factory {
+    override fun <T: ViewModel> create(modelClass: Class<T>): T {
+        return MealViewModel(application) as T
+    }
 }
 
 @Preview(showBackground = true)
