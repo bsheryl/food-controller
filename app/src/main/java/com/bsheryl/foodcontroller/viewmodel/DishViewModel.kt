@@ -1,23 +1,20 @@
 package com.bsheryl.foodcontroller.viewmodel
 
 import android.app.Application
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.bsheryl.foodcontroller.databases.FoodControllerRoomDatabase
 import com.bsheryl.foodcontroller.entities.Dish
 import com.bsheryl.foodcontroller.repository.DishRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class DishViewModel(application: Application): ViewModel() {
     val dishList: LiveData<List<Dish>>
     private val dishRepository: DishRepository
-    var dishName by mutableStateOf("")
-    var pro by mutableStateOf(0)
-    var fat by mutableStateOf(0)
-    var carbs by mutableStateOf(0)
-    var cal by mutableStateOf(0)
+    private val _selectedDish = MutableStateFlow<Dish?>(null)
+    val selectedDish: StateFlow<Dish> = _selectedDish.asStateFlow() as StateFlow<Dish>
 
     init {
         val foodControllerDb = FoodControllerRoomDatabase.getInstance(application)
@@ -26,45 +23,23 @@ class DishViewModel(application: Application): ViewModel() {
         dishList = dishRepository.dishList
     }
 
-    fun changeName(value: String) {
-        dishName = value
-    }
-
-    fun changePro(value: Int) {
-        pro = value
-    }
-
-    fun changeFat(value: Int) {
-        fat = value
-    }
-
-    fun changeCarbs(value: Int) {
-        carbs = value
-    }
-
-    fun changeCal(value: Int) {
-        cal = value
+    fun selectedDish(dish: Dish) {
+        _selectedDish.value = dish
     }
 
     fun addDish() {
         dishRepository.addDish(
-            dish = Dish(
-                dishName = dishName,
-                pro = pro,
-                fat = fat,
-                carbs = carbs,
-                cal = cal)
+            dish = selectedDish.value
         )
+    }
+
+    fun updateDish(newDish: Dish) {
+        _selectedDish.value = newDish
     }
 
     fun deleteDish() {
         dishRepository.deleteDish(
-            dish = Dish(
-                dishName = dishName,
-                pro = pro,
-                fat = fat,
-                carbs = carbs,
-                cal = cal)
+            dish = selectedDish.value
         )
     }
 }

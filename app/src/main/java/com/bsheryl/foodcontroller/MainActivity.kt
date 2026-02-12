@@ -5,11 +5,11 @@ package com.bsheryl.foodcontroller
 import android.annotation.SuppressLint
 import android.app.Application
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -28,7 +30,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -54,6 +56,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.bsheryl.foodcontroller.components.DishScreen
+import com.bsheryl.foodcontroller.components.DishesScreen
 import com.bsheryl.foodcontroller.viewmodel.DishViewModel
 import com.bsheryl.foodcontroller.viewmodel.MealViewModel
 import java.text.SimpleDateFormat
@@ -65,8 +73,36 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            Greeting(name = "Android")
+            val owner = LocalViewModelStoreOwner.current
+            owner?.let {
+                val dishViewModel: DishViewModel = viewModel(
+                    it,
+                    "DishViewModel",
+                    DishViewModelFactory(LocalContext.current.applicationContext as Application)
+                )
+                val mealViewModel: MealViewModel = viewModel(
+                    it,
+                    "MealViewModel",
+                    MealViewModelFactory(LocalContext.current.applicationContext as Application)
+                )
+                val navController = rememberNavController()
+                NavHost(navController, startDestination = NavRoutes.Main.route) {
+                    composable(NavRoutes.Main.route) {
+                        Main(
+                            name = "Android",
+                            navController = navController
+                        )
+                    }
+                    composable(NavRoutes.Dishes.route) { DishesScreen(navController, dishViewModel = dishViewModel) }
+                    composable(NavRoutes.DishScreen.route) {
+                        DishScreen(
+                            navController = navController,
+                            dishViewModel = dishViewModel
+                        )
+                    }
 //            DatePickerScreen()
+                }
+            }
         }
     }
 }
@@ -76,30 +112,31 @@ val formatter = SimpleDateFormat("yyyy-MM-dd")
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    val owner = LocalViewModelStoreOwner.current
-    owner?.let {
-        val dishViewModel: DishViewModel = viewModel(
-            it,
-            "DishViewModel",
-            DishViewModelFactory(LocalContext.current.applicationContext as Application)
-        )
-        val mealViewModel: MealViewModel = viewModel(
-            it,
-            "MealViewModel",
-            MealViewModelFactory(LocalContext.current.applicationContext as Application)
-        )
-    }
-    var showDialog by remember { mutableStateOf(false) }
+fun Main(name: String, modifier: Modifier = Modifier, navController: NavController) {
+    var showDatePickerDialog by remember { mutableStateOf(false) }
     var date by remember { mutableStateOf(formatter.format(Date()))}
     val datePickerState = rememberDatePickerState()
+
     Scaffold(
         topBar = {
             @OptIn(ExperimentalMaterial3Api::class)
-            TopAppBar(title = { Text("FoodController", fontSize = 22.sp)},
-                navigationIcon = { IconButton({}) { Icon(Icons.Filled.Menu, contentDescription = "Меню") }},
+            TopAppBar(
+                title = { Text("FoodController", fontSize = 22.sp) },
+                navigationIcon = {
+                    IconButton({}) {
+                        Icon(
+                            Icons.Filled.Menu,
+                            contentDescription = "Меню"
+                        )
+                    }
+                },
                 actions = {
-                    IconButton({}) { Icon(Icons.Filled.Person, contentDescription = "Профиль") }
+                    IconButton({}) {
+                        Icon(
+                            Icons.Filled.Person,
+                            contentDescription = "Профиль"
+                        )
+                    }
                 }
             )
         }
@@ -109,13 +146,13 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxWidth().padding(it),
                 contentAlignment = Alignment.Center,
 
-            ) {
+                ) {
                 // Стрелка влево (левая боковая) - предыдущая дата
                 IconButton(
                     modifier = Modifier.align(alignment = Alignment.CenterStart),
                     onClick = {
                         date = addDay(date, -1)
-                }) {
+                    }) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowLeft,
                         contentDescription = "Назад",
@@ -123,12 +160,16 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                 }
                 // Календарь слева
                 IconButton(
-                    modifier = Modifier.align(alignment = Alignment.CenterStart).offset(x = 60.dp),
-                    onClick = { showDialog = true
-                }) { Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = "Календарь",
-                )}
+                    modifier = Modifier.align(alignment = Alignment.CenterStart)
+                        .offset(x = 60.dp),
+                    onClick = {
+                        showDatePickerDialog = true
+                    }) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = "Календарь",
+                    )
+                }
                 // Дата по центру
                 Text(
                     text = date,
@@ -140,16 +181,18 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                     modifier = Modifier.align(alignment = Alignment.CenterEnd),
                     onClick = {
                         date = addDay(date, 1)
-                }) {
+                    }) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowRight,
                         contentDescription = "Вперед",
                     )
                 }
             }
-//            Text(text ="Здесь будут каллории", fontSize = 28.sp, modifier = Modifier.padding(it))
-            Box(modifier = Modifier.fillMaxWidth().padding(it),
-                contentAlignment = Alignment.Center,) {
+            //БЖУК
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(it),
+                contentAlignment = Alignment.Center,
+            ) {
                 Column() {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Box(
@@ -253,40 +296,78 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                     }
                 }
             }
-            Text(text ="Здесь будут блюда", fontSize = 28.sp, modifier = Modifier.padding(it))
+            Text(
+                text = "Здесь будут блюда",
+                fontSize = 28.sp,
+                modifier = Modifier.padding(it)
+            )
+            // Кнопка добавить прием пищи
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(it),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                IconButton(
+                    modifier = Modifier
+                        .align(alignment = Alignment.CenterEnd)
+                        .clip(CircleShape)
+                        .background(Color.LightGray),
+                    onClick = {
+                        navController.navigate(NavRoutes.Dishes.route)
+                    }) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Добавление приема пищи",
+                    )
+                }
+            }
         }
-        if (showDialog) {
-            val buttonColors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color.DarkGray, contentColor = androidx.compose.ui.graphics.Color.LightGray)
+        if (showDatePickerDialog) {
+            val buttonColors = ButtonDefaults.buttonColors(
+                containerColor = Color.DarkGray,
+                contentColor = androidx.compose.ui.graphics.Color.LightGray
+            )
             DatePickerDialog(
                 onDismissRequest = {},
                 confirmButton = {
-                    Button(onClick = {
-                        datePickerState.selectedDateMillis?.let {millis ->
-                            date = formatter.format(Date(millis))
-                        }
-                        showDialog = false
-                    }, colors = buttonColors,
-                        border = BorderStroke(1.dp, androidx.compose.ui.graphics.Color.LightGray)) {
+                    Button(
+                        onClick = {
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                date = formatter.format(Date(millis))
+                            }
+                            showDatePickerDialog = false
+                        }, colors = buttonColors,
+                        border = BorderStroke(1.dp, Color.LightGray)
+                    ) {
                         Text("OK", fontSize = 22.sp)
                     }
                 },
                 dismissButton = {
                     Button(
                         onClick = {
-                            showDialog = false
+                            showDatePickerDialog = false
                         }, colors = buttonColors,
-                        border = BorderStroke(1.dp, androidx.compose.ui.graphics.Color.LightGray)) {
+                        border = BorderStroke(1.dp, Color.LightGray)
+                    ) {
                         Text("Отмена", fontSize = 22.sp)
                     }
                 },
             ) {
                 DatePicker(
-                        state = datePickerState
-                    )
+                    state = datePickerState
+                )
             }
         }
     }
+
 }
+
+sealed class NavRoutes(val route: String) {
+    object Main: NavRoutes("main")
+    object Dishes: NavRoutes("dishes")
+    object DishScreen: NavRoutes("DishScreen")
+}
+
+
 
 fun addDay(date: String, delta: Int): String {
     val calendar = Calendar.getInstance()
@@ -309,6 +390,8 @@ class MealViewModelFactory(val application: Application): ViewModelProvider.Fact
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    Greeting(name = "Android")
+fun MainPreview() {
+    val navController = rememberNavController()
+    Main(name = "Android", navController = navController)
 }
+

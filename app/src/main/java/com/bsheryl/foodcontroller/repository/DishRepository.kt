@@ -12,13 +12,13 @@ class DishRepository(private val dishDao: DishDao) {
 
     val dishList: LiveData<List<Dish>> = dishDao.getDishes()
 
-    fun addDish(dish: Dish) {
+    fun addDish(dish: Dish = Dish()) {
         coroutineScope.launch(Dispatchers.IO) {
             dishDao.addDish(dish)
         }
     }
 
-    fun deleteDish(dish: Dish) {
+    fun deleteDish(dish: Dish = Dish()) {
         coroutineScope.launch(Dispatchers.IO) {
             dishDao.deleteDish(dish)
         }

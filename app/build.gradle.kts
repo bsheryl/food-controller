@@ -43,6 +43,8 @@ android {
 }
 
 dependencies {
+    debugImplementation(libs.ui.tooling)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation (libs.androidx.runtime.livedata)
