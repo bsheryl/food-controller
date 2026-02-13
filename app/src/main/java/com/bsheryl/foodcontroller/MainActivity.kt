@@ -5,6 +5,7 @@ package com.bsheryl.foodcontroller
 import android.annotation.SuppressLint
 import android.app.Application
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -62,6 +63,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.bsheryl.foodcontroller.components.DishScreen
 import com.bsheryl.foodcontroller.components.DishesScreen
+import com.bsheryl.foodcontroller.components.MealScreen
 import com.bsheryl.foodcontroller.viewmodel.DishViewModel
 import com.bsheryl.foodcontroller.viewmodel.MealViewModel
 import java.text.SimpleDateFormat
@@ -88,16 +90,18 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 NavHost(navController, startDestination = NavRoutes.Main.route) {
                     composable(NavRoutes.Main.route) {
-                        Main(
-                            name = "Android",
-                            navController = navController
-                        )
+                        Main(name = "Android", navController = navController)
                     }
-                    composable(NavRoutes.Dishes.route) { DishesScreen(navController, dishViewModel = dishViewModel) }
+                    composable(NavRoutes.Dishes.route) {
+                        DishesScreen(navController, dishViewModel = dishViewModel)
+                    }
                     composable(NavRoutes.DishScreen.route) {
-                        DishScreen(
-                            navController = navController,
-                            dishViewModel = dishViewModel
+                        DishScreen(navController = navController, dishViewModel = dishViewModel)
+                    }
+                    composable(NavRoutes.MealScreen.route + "/{dishId}") { stackEntry ->
+                        val dishId = stackEntry.arguments?.getString("dishId")
+                        MealScreen(navController = navController, dishId = dishId,
+                            mealViewModel = mealViewModel, dishViewModel = dishViewModel
                         )
                     }
 //            DatePickerScreen()
@@ -110,7 +114,6 @@ class MainActivity : ComponentActivity() {
 val formatter = SimpleDateFormat("yyyy-MM-dd")
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun Main(name: String, modifier: Modifier = Modifier, navController: NavController) {
     var showDatePickerDialog by remember { mutableStateOf(false) }
@@ -190,7 +193,7 @@ fun Main(name: String, modifier: Modifier = Modifier, navController: NavControll
             }
             //БЖУК
             Box(
-                modifier = Modifier.fillMaxWidth().padding(it),
+                modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center,
             ) {
                 Column() {
@@ -297,13 +300,12 @@ fun Main(name: String, modifier: Modifier = Modifier, navController: NavControll
                 }
             }
             Text(
-                text = "Здесь будут блюда",
-                fontSize = 28.sp,
-                modifier = Modifier.padding(it)
+                text = "Здесь будут трапезы",
+                fontSize = 28.sp
             )
             // Кнопка добавить прием пищи
             Box(
-                modifier = Modifier.fillMaxWidth().padding(it),
+                modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.BottomCenter
             ) {
                 IconButton(
@@ -364,7 +366,8 @@ fun Main(name: String, modifier: Modifier = Modifier, navController: NavControll
 sealed class NavRoutes(val route: String) {
     object Main: NavRoutes("main")
     object Dishes: NavRoutes("dishes")
-    object DishScreen: NavRoutes("DishScreen")
+    object DishScreen: NavRoutes("dishScreen")
+    object MealScreen: NavRoutes("mealScreen")
 }
 
 

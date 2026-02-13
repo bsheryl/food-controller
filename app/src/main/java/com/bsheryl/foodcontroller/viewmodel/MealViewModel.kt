@@ -10,18 +10,17 @@ import com.bsheryl.foodcontroller.databases.FoodControllerRoomDatabase
 import com.bsheryl.foodcontroller.entities.Dish
 import com.bsheryl.foodcontroller.entities.Meal
 import com.bsheryl.foodcontroller.repository.MealRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.util.Date
 
 class MealViewModel(application: Application): ViewModel() {
     val mealList: LiveData<List<Meal>>
     private val mealRepository: MealRepository
     var dish by mutableStateOf(Dish())
-    var mealDateTime by mutableStateOf(Date())
-    var weight by mutableStateOf(0)
-    var pro by mutableStateOf(0)
-    var fat by mutableStateOf(0)
-    var carbs by mutableStateOf(0)
-    var cal by mutableStateOf(0)
+    private val _meal = MutableStateFlow<Meal>(Meal())
+    val meal: StateFlow<Meal> = _meal.asStateFlow() as StateFlow<Meal>
 
     init {
         val foodControllerDb = FoodControllerRoomDatabase.getInstance(application)
@@ -30,35 +29,21 @@ class MealViewModel(application: Application): ViewModel() {
         mealList = mealRepository.mealList
     }
 
-    fun changeDish(value: Dish) {
-        dish = value
-    }
-
-    fun changePro(value: Int) {
-        pro = value
-    }
-
-    fun changeFat(value: Int) {
-        fat = value
-    }
-
-    fun changeCarbs(value: Int) {
-        carbs = value
-    }
-
-    fun changeCal(value: Int) {
-        cal = value
+    fun setupInitialMeal(dishId: String?) {
+        if (_meal.value.dishId.isEmpty()) {
+            _meal.value = Meal(dishId = dishId ?: "")
+        }
     }
 
     fun addMeal() {
-        mealRepository.addMeal(
-            meal = Meal(dish = dish, weight = weight)
-        )
+        mealRepository.addMeal(meal = meal.value)
+    }
+
+    fun updateMeal(newMeal: Meal) {
+        _meal.value = newMeal
     }
 
     fun deleteMeal() {
-        mealRepository.deleteMeal(
-            meal = Meal(dish = dish, weight = weight)
-        )
+        mealRepository.deleteMeal(meal = meal.value)
     }
 }

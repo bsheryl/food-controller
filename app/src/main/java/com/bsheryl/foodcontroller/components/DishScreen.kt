@@ -31,7 +31,7 @@ import com.bsheryl.foodcontroller.viewmodel.DishViewModel
 
 @Composable
 fun DishScreen(navController: NavController, dishViewModel: DishViewModel) {
-    val dish by dishViewModel.selectedDish .collectAsState()
+    val dish by dishViewModel.selectedDish.collectAsState()
     DishContent(navController = navController, dish = dish,
         onDishChanged = { updatedDish -> dishViewModel.updateDish(updatedDish)},
         updateDish = { dishViewModel.addDish()}
@@ -118,7 +118,7 @@ fun DishFieldRow(field: String, onValueChange: (String) -> Unit, modifier: Modif
 
 @Preview(showBackground = true)
 @Composable
-fun CreateOrEditDishScreenPreview() {
+fun DishScreenPreview() {
     val navController = rememberNavController()
     var dish = Dish()
     DishContent(navController = navController, dish = dish,

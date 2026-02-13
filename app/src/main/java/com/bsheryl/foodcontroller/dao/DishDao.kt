@@ -21,4 +21,7 @@ interface DishDao {
 
     @Delete
     fun deleteDish(dish: Dish)
+
+    @Query("select * from dishes where id = :id")
+    fun getById(id: String?): Flow<Dish>
 }
