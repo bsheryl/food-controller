@@ -42,9 +42,9 @@ class DishViewModel(application: Application): ViewModel() {
         _selectedDish.value = newDish
     }
 
-    fun deleteDish() {
+    fun deleteDish(dish: Dish) {
         dishRepository.deleteDish(
-            dish = selectedDish.value
+            dish = dish
         )
     }
 

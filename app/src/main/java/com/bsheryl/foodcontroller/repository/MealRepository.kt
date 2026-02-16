@@ -5,6 +5,7 @@ import com.bsheryl.foodcontroller.dao.MealDao
 import com.bsheryl.foodcontroller.entities.Meal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 class MealRepository(private val mealDao: MealDao) {
@@ -22,5 +23,9 @@ class MealRepository(private val mealDao: MealDao) {
         coroutineScope.launch(Dispatchers.IO) {
             mealDao.deleteMeal(meal)
         }
+    }
+
+    fun getMealsByDate(date: String): Flow<List<Meal>> {
+        return mealDao.getMealsByDate(date)
     }
 }

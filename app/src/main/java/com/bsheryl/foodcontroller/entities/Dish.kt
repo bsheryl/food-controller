@@ -8,10 +8,10 @@ import java.util.UUID
 
 @Entity(tableName = "dishes")
 data class Dish(
-    @PrimaryKey val id: String = UUID.randomUUID().toString(),
-    @ColumnInfo(name = "dish_name") val dishName: String = "",
-    val pro: Int = 0,
-    val fat: Int = 0,
-    val carbs: Int = 0,
-    val cal: Int = 0
+    @PrimaryKey var id: String = UUID.randomUUID().toString(),
+    @ColumnInfo(name = "dish_name") var dishName: String = "",
+    var pro: Double = 0.0,
+    var fat: Double = 0.0,
+    var carbs: Double = 0.0,
+    var cal: Double = 0.0
 )

@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,15 +35,21 @@ import androidx.navigation.compose.rememberNavController
 import com.bsheryl.foodcontroller.NavRoutes
 import com.bsheryl.foodcontroller.entities.Dish
 import com.bsheryl.foodcontroller.viewmodel.DishViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
 
 @Composable
-fun DishesScreen(navController: NavController, dishViewModel: DishViewModel) {
+fun DishesScreen(navController: NavController, dishViewModel: DishViewModel,
+                 date: String?) {
     val dishes by dishViewModel.dishList.observeAsState(emptyList())
-    DishesContent(navController, dishes)
+    DishesContent(navController, dishes,
+        onDelete = {dish -> dishViewModel.deleteDish(dish)},
+        date = date ?: SimpleDateFormat("yyyy-MM-dd").format(Date()))
 }
 
 @Composable
-fun DishesContent(navController: NavController, dishes: List<Dish>) {
+fun DishesContent(navController: NavController, dishes: List<Dish>, onDelete: (Dish) -> Unit,
+                  date: String) {
     Scaffold(
         topBar = {
             @OptIn(ExperimentalMaterial3Api::class)
@@ -64,7 +71,8 @@ fun DishesContent(navController: NavController, dishes: List<Dish>) {
                 modifier = Modifier.fillMaxWidth().padding(it),
                 contentAlignment = Alignment.Center
             ) {
-                DishesList(dishes = dishes, navController = navController)
+                DishesList(dishes = dishes, navController = navController, onDelete = onDelete,
+                    date = date)
             }
             // Кнопка добавить прием пищи
             Box(
@@ -90,50 +98,54 @@ fun DishesContent(navController: NavController, dishes: List<Dish>) {
 }
 
 @Composable
-fun DishesList(dishes: List<Dish>, navController: NavController) {
+fun DishesList(dishes: List<Dish>, navController: NavController, onDelete: (Dish) -> Unit,
+               date: String) {
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         //здесь будет поисковик
 //        item { DishTitleRow() }
-        items(dishes) { dish -> DishRow(dish, navController = navController)}
+        items(dishes) { dish -> DishRow(dish, navController = navController,
+                onDelete = onDelete, date = date)}
     }
 }
 
 @Composable
-fun DishRow(dish: Dish, navController: NavController) {
-    Column(modifier = Modifier.fillMaxWidth().padding(5.dp)
-        .clickable {
-            navController.navigate("mealScreen/${dish.id}")
-        }) {
-        Text(dish.dishName, fontSize = 20.sp)
-        Row(Modifier.fillMaxWidth().padding(5.dp)) {
-            Text("Б: " + dish.pro.toString(), Modifier.weight(0.2f), fontSize = 14.sp)
-            Text("Ж: " + dish.fat.toString(), Modifier.weight(0.2f), fontSize = 14.sp)
-            Text("У: " + dish.carbs.toString(), Modifier.weight(0.2f), fontSize = 14.sp)
-            Text("К: " + dish.cal.toString(), Modifier.weight(0.2f), fontSize = 14.sp)
-//        Text("Delete", Modifier.weight(0.2f).clickable { delete(user.id) }, color=Color(0xFF6650a4), fontSize = 22.sp)
+fun DishRow(dish: Dish, navController: NavController, onDelete: (Dish) -> Unit, date: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(5.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier.weight(1f)
+                .clickable {
+                    navController.navigate("mealScreen/${dish.id}/${date}")
+                }) {
+            Text(dish.dishName, fontSize = 20.sp)
+            Row(Modifier.fillMaxWidth().padding(5.dp)) {
+                Text("Б: " + dish.pro.toString(), Modifier.weight(0.2f), fontSize = 14.sp)
+                Text("Ж: " + dish.fat.toString(), Modifier.weight(0.2f), fontSize = 14.sp)
+                Text("У: " + dish.carbs.toString(), Modifier.weight(0.2f), fontSize = 14.sp)
+                Text("К: " + dish.cal.toString(), Modifier.weight(0.2f), fontSize = 14.sp)
+            }
+        }
+        IconButton(onClick = {onDelete(dish)}) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Удалить",
+                tint = Color.Red
+            )
         }
     }
 }
 
-@Composable
-fun DishTitleRow() {
-    Row(modifier = Modifier.background(Color.LightGray).fillMaxWidth().padding(5.dp)) {
-//        Text("Name", color = Color.White, fontSize = 22.sp)
-        Text("Наименование", Modifier.weight(0.4f), fontSize = 14.sp)
-        Text("Белки", Modifier.weight(0.2f), fontSize = 14.sp)
-        Text("Жиры", Modifier.weight(0.2f), fontSize = 14.sp)
-        Text("Углеводы", Modifier.weight(0.2f), fontSize = 14.sp)
-        Text("Калории", Modifier.weight(0.2f), fontSize = 14.sp)
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
 fun DishesPreview() {
     val navController = rememberNavController()
     val fakeDishes = listOf(
-        Dish("1", "омлет", 10, 10, 10, 10),
-        Dish("2", "макароны", 10, 10, 10, 10),
+        Dish(dishName = "омлет", pro = 10.0, fat = 10.0, carbs = 10.0, cal = 10.0),
+        Dish(dishName = "макароны", pro = 10.0, fat = 10.0, carbs = 10.0, cal = 10.0),
     )
-    DishesContent(navController, fakeDishes)
+    DishesContent(navController, fakeDishes, onDelete = {},
+        date = SimpleDateFormat("yyyy-MM-dd").format(Date()))
 }
