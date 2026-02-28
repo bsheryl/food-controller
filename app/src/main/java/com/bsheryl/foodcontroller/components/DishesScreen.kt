@@ -119,7 +119,7 @@ fun DishRow(dish: Dish, navController: NavController, onDelete: (Dish) -> Unit, 
                 .clickable {
                     navController.navigate("mealScreen/${dish.id}/${date}")
                 }) {
-            Text(dish.dishName, fontSize = 20.sp)
+            Text(dish.name, fontSize = 20.sp)
             Row(Modifier.fillMaxWidth().padding(5.dp)) {
                 Text("Б: " + dish.pro.toString(), Modifier.weight(0.2f), fontSize = 14.sp)
                 Text("Ж: " + dish.fat.toString(), Modifier.weight(0.2f), fontSize = 14.sp)
@@ -143,8 +143,8 @@ fun DishRow(dish: Dish, navController: NavController, onDelete: (Dish) -> Unit, 
 fun DishesPreview() {
     val navController = rememberNavController()
     val fakeDishes = listOf(
-        Dish(dishName = "омлет", pro = 10.0, fat = 10.0, carbs = 10.0, cal = 10.0),
-        Dish(dishName = "макароны", pro = 10.0, fat = 10.0, carbs = 10.0, cal = 10.0),
+        Dish(name = "омлет", pro = 10.0, fat = 10.0, carbs = 10.0, cal = 10.0),
+        Dish(name = "макароны", pro = 10.0, fat = 10.0, carbs = 10.0, cal = 10.0),
     )
     DishesContent(navController, fakeDishes, onDelete = {},
         date = SimpleDateFormat("yyyy-MM-dd").format(Date()))

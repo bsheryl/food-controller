@@ -9,7 +9,7 @@ import java.util.UUID
 @Entity(tableName = "dishes")
 data class Dish(
     @PrimaryKey var id: String = UUID.randomUUID().toString(),
-    @ColumnInfo(name = "dish_name") var dishName: String = "",
+    var name: String = "",
     var pro: Double = 0.0,
     var fat: Double = 0.0,
     var carbs: Double = 0.0,

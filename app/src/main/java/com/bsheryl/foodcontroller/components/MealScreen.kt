@@ -39,7 +39,7 @@ import com.bsheryl.foodcontroller.viewmodel.DishViewModel
 import com.bsheryl.foodcontroller.viewmodel.MealViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
-
+import kotlin.math.floor
 
 
 @Composable
@@ -86,7 +86,7 @@ fun MealContent(navController: NavController, currentDish: Dish, meal: Meal,
         topBar = {
             @OptIn(ExperimentalMaterial3Api::class)
             TopAppBar(
-                title = { Text("Трапеза", fontSize = 22.sp) },
+                title = { Text("Прием пищи", fontSize = 22.sp) },
                 navigationIcon = {
                     IconButton({ navController.popBackStack() }) {
                         Icon(
@@ -144,7 +144,7 @@ fun MealContent(navController: NavController, currentDish: Dish, meal: Meal,
                 Text(text = "Продукт", fontSize = 18.sp)
                 Spacer(modifier = Modifier.weight(1f))
                 OutlinedTextField(
-                    value = currentDish.dishName,
+                    value = currentDish.name,
                     modifier = Modifier.padding(10.dp),
                     onValueChange = { }
                 )
@@ -165,10 +165,10 @@ fun MealContent(navController: NavController, currentDish: Dish, meal: Meal,
                         val newWeight = value.toDoubleOrNull() ?: 0.0
                         onMealChanged(currentMeal.copy(
                             weight = newWeight,
-                            pro = currentDish.pro * newWeight / 100,
-                            fat = currentDish.fat * newWeight / 100,
-                            carbs = currentDish.carbs * newWeight / 100,
-                            cal = currentDish.cal * newWeight / 100
+                            pro = floor(currentDish.pro * newWeight * 100) / 10000,
+                            fat = floor(currentDish.fat * newWeight * 100) / 10000,
+                            carbs = floor(currentDish.carbs * newWeight * 100) / 10000,
+                            cal = floor(currentDish.cal * newWeight * 100)/ 10000
                         ))
                     }
                 )

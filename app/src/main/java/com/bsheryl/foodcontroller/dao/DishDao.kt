@@ -13,7 +13,7 @@ interface DishDao {
     @Insert
     fun addDish(dish: Dish)
 
-    @Query("select * from dishes")
+    @Query("select * from dishes order by name")
     fun getDishes(): LiveData<List<Dish>>
 
 //    @Query("SELECT * FROM dishes WHERE id = :id")

@@ -31,8 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.bsheryl.foodcontroller.NavRoutes
 import com.bsheryl.foodcontroller.entities.Dish
+import com.bsheryl.foodcontroller.utils.CheckInputedValueDouble
 import com.bsheryl.foodcontroller.viewmodel.DishViewModel
 
 @Composable
@@ -64,10 +64,11 @@ fun DishContent(navController: NavController, dish: Dish?,
                     }
                 },
                 actions = {
-                    if (currentDish.dishName != "") {
+                    if (currentDish.name != "") {
                         IconButton({
+                            onDishChanged(currentDish)  //test express
                             updateDish()
-                            navController.navigate(NavRoutes.Dishes.route)
+                            navController.popBackStack()
                         }) {
                             Icon(
                                 Icons.Filled.Check,
@@ -80,8 +81,8 @@ fun DishContent(navController: NavController, dish: Dish?,
         }
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            DishFieldRow(field = currentDish.dishName,
-                onValueChange = { onDishChanged(currentDish.copy(dishName = it))},
+            DishFieldRow(field = currentDish.name,
+                onValueChange = { onDishChanged(currentDish.copy(name = it))},
                 modifier = Modifier.fillMaxWidth().padding(it),
                 text = "Название"
             )
@@ -158,17 +159,18 @@ fun DishFieldNumberRow(
             label = { Text(text = text) },
             keyboardOptions = keyboardOptions,
             onValueChange = { newValue ->
-                // Разрешаем только цифры и одну точку/запятую
-                val filtered = newValue.replace(',', '.')
-                    .filterIndexed { index, char ->
-                        char.isDigit() || (char == '.' && newValue.indexOf('.') == index)
-                    }
-
-                // Обновляем визуальный текст (здесь точка или удаленный .0 не вернутся сами)
-                textState = filtered
-
-                // Отправляем число "наверх" в объект Dish
-                val doubleValue = filtered.toDoubleOrNull() ?: 0.0
+//                // Разрешаем только цифры и одну точку/запятую
+//                val filtered = newValue.replace(',', '.')
+//                    .filterIndexed { index, char ->
+//                        char.isDigit() || (char == '.' && newValue.indexOf('.') == index)
+//                    }
+//
+//                // Обновляем визуальный текст (здесь точка или удаленный .0 не вернутся сами)
+//                textState = filtered
+//
+//                // Отправляем число "наверх" в объект Dish
+//                val doubleValue = filtered.toDoubleOrNull() ?: 0.0
+                val doubleValue = CheckInputedValueDouble(newValue, {textState = it})
                 onValueChange(doubleValue)
             }
         )

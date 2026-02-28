@@ -19,8 +19,10 @@ import com.bsheryl.foodcontroller.components.DishScreen
 import com.bsheryl.foodcontroller.components.DishesScreen
 import com.bsheryl.foodcontroller.components.MainScreen
 import com.bsheryl.foodcontroller.components.MealScreen
+import com.bsheryl.foodcontroller.components.ProfileScreen
 import com.bsheryl.foodcontroller.viewmodel.DishViewModel
 import com.bsheryl.foodcontroller.viewmodel.MealViewModel
+import com.bsheryl.foodcontroller.viewmodel.ProfileViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,6 +31,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             val owner = LocalViewModelStoreOwner.current
             owner?.let {
+                val profileViewModel: ProfileViewModel = viewModel(
+                    it,
+                    "ProfileViewModel",
+                    ProfileViewModelFactory(LocalContext.current.applicationContext as Application)
+                )
                 val dishViewModel: DishViewModel = viewModel(
                     it,
                     "DishViewModel",
@@ -43,8 +50,13 @@ class MainActivity : ComponentActivity() {
                 NavHost(navController, startDestination = NavRoutes.Main.route) {
                     composable(NavRoutes.Main.route) {
                         MainScreen(navController = navController,
-                            mealViewModel = mealViewModel, dishViewModel = dishViewModel
+                            mealViewModel = mealViewModel,
+                            dishViewModel = dishViewModel,
+                            profileViewModel = profileViewModel
                         )
+                    }
+                    composable(NavRoutes.Profile.route) {
+                        ProfileScreen(navController, profileViewModel = profileViewModel)
                     }
                     composable(NavRoutes.Dishes.route + "/{date}") { stackEntry ->
                         val date = stackEntry.arguments?.getString("date")
@@ -71,6 +83,7 @@ class MainActivity : ComponentActivity() {
 
 sealed class NavRoutes(val route: String) {
     object Main: NavRoutes("mainScreen")
+    object Profile: NavRoutes("profileScreen")
     object Dishes: NavRoutes("dishesScreen")
     object DishScreen: NavRoutes("dishScreen")
     object MealScreen: NavRoutes("mealScreen")
@@ -85,6 +98,12 @@ class DishViewModelFactory(val application: Application): ViewModelProvider.Fact
 class MealViewModelFactory(val application: Application): ViewModelProvider.Factory {
     override fun <T: ViewModel> create(modelClass: Class<T>): T {
         return MealViewModel(application) as T
+    }
+}
+
+class ProfileViewModelFactory(val application: Application): ViewModelProvider.Factory {
+    override fun <T: ViewModel> create(modelClass: Class<T>): T {
+        return ProfileViewModel(application) as T
     }
 }
 

@@ -58,6 +58,7 @@ import com.bsheryl.foodcontroller.entities.Dish
 import com.bsheryl.foodcontroller.entities.Meal
 import com.bsheryl.foodcontroller.viewmodel.DishViewModel
 import com.bsheryl.foodcontroller.viewmodel.MealViewModel
+import com.bsheryl.foodcontroller.viewmodel.ProfileViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -65,19 +66,38 @@ import java.util.Date
 val formatter = SimpleDateFormat("yyyy-MM-dd")
 
 @Composable
-fun MainScreen(navController: NavController, mealViewModel: MealViewModel, dishViewModel: DishViewModel) {
+fun MainScreen(navController: NavController,
+               mealViewModel: MealViewModel,
+               dishViewModel: DishViewModel,
+               profileViewModel: ProfileViewModel
+) {
     val meals by mealViewModel.mealsByDate.observeAsState(emptyList())
     val dishes by dishViewModel.dishList.observeAsState(emptyList())
     val date by mealViewModel.selectedDate.collectAsStateWithLifecycle()
-    MainContent(navController = navController, meals = meals, dishes = dishes,
-        date = date, onDateChange = { newDate -> mealViewModel.setDate(newDate = newDate)},
+    val userWeight = profileViewModel.userWeightState
+    val userLimitCal = profileViewModel.userLimitCalState
+    val userLimitPro = profileViewModel.userLimitProState
+    val userLimitFat = profileViewModel.userLimitFatState
+    val userLimitCarbs = profileViewModel.userLimitCarbsState
+    MainContent(navController = navController, meals = meals, dishes = dishes, date = date,
+        userWeight = userWeight,
+        userLimitCal = userLimitCal,
+        userLimitPro = userLimitPro,
+        userLimitFat = userLimitFat,
+        userLimitCarbs = userLimitCarbs,
+        onDateChange = { newDate -> mealViewModel.setDate(newDate = newDate)},
         onDelete = {meal -> mealViewModel.deleteMeal(meal)})
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainContent(navController: NavController, meals: List<Meal>, dishes: List<Dish>,
-                date: String, onDateChange: (String) -> Unit,
+fun MainContent(navController: NavController, meals: List<Meal>, dishes: List<Dish>, date: String,
+                userWeight: Double = 0.0,
+                userLimitCal: Double = 0.0,
+                userLimitPro: Double = 0.0,
+                userLimitFat: Double = 0.0,
+                userLimitCarbs: Double = 0.0,
+                onDateChange: (String) -> Unit,
                 onDelete: (Meal) -> Unit) {
     Scaffold(
         topBar = {
@@ -93,7 +113,7 @@ fun MainContent(navController: NavController, meals: List<Meal>, dishes: List<Di
                     }
                 },
                 actions = {
-                    IconButton({}) {
+                    IconButton({navController.navigate(NavRoutes.Profile.route)}) {
                         Icon(
                             Icons.Filled.Person,
                             contentDescription = "Профиль"
@@ -106,7 +126,12 @@ fun MainContent(navController: NavController, meals: List<Meal>, dishes: List<Di
         Column {
             DateRow(modifier = Modifier.fillMaxWidth().padding(it),
                 date = date, onDateChange = onDateChange)
-            PfccBox(meals = meals)
+            PfccBox(meals = meals,
+                userLimitCal = userLimitCal,
+                userLimitPro = userLimitPro,
+                userLimitFat = userLimitFat,
+                userLimitCarbs = userLimitCarbs,
+                )
 //            Text(text = "Здесь будут трапезы", fontSize = 28.sp)
             MealList(meals = meals, navController = navController, dishes = dishes,
                 onDelete = onDelete)
@@ -136,7 +161,12 @@ fun MainContent(navController: NavController, meals: List<Meal>, dishes: List<Di
 }
 
 @Composable
-fun PfccBox(meals: List<Meal>) {
+fun PfccBox(meals: List<Meal>,
+            userLimitCal: Double = 0.0,
+            userLimitPro: Double = 0.0,
+            userLimitFat: Double = 0.0,
+            userLimitCarbs: Double = 0.0,
+) {
     //БЖУК
     Box(
         modifier = Modifier.fillMaxWidth(),
@@ -144,19 +174,19 @@ fun PfccBox(meals: List<Meal>) {
     ) {
         Column() {
             Row(modifier = Modifier.fillMaxWidth()) {
-                PfccElementBox(label = "Белки", sum = meals.sumOf { it.pro })
-                PfccElementBox(label = "Жиры", sum = meals.sumOf { it.fat })
+                PfccElementBox(label = "Белки", sum = meals.sumOf { it.pro }, limit = userLimitPro)
+                PfccElementBox(label = "Жиры", sum = meals.sumOf { it.fat }, limit = userLimitFat)
             }
             Row(modifier = Modifier.fillMaxWidth()) {
-                PfccElementBox(label = "Углеводы", sum = meals.sumOf { it.carbs })
-                PfccElementBox(label = "Калории", sum = meals.sumOf { it.cal })
+                PfccElementBox(label = "Углеводы", sum = meals.sumOf { it.carbs }, limit = userLimitCarbs)
+                PfccElementBox(label = "Калории", sum = meals.sumOf { it.cal }, limit = userLimitCal)
             }
         }
     }
 }
 
 @Composable
-fun RowScope.PfccElementBox(label: String, sum: Double) {
+fun RowScope.PfccElementBox(label: String, sum: Double, limit: Double) {
     Box(
         modifier = Modifier
             .weight(1f)
@@ -164,6 +194,10 @@ fun RowScope.PfccElementBox(label: String, sum: Double) {
             .border(
                 width = 2.dp,
                 color = Color.DarkGray,
+                shape = RoundedCornerShape(10.dp),
+            )
+            .background(
+                if (sum > limit) Color.Red else Color.White,
                 shape = RoundedCornerShape(10.dp)
             )
             .padding(10.dp)
@@ -178,7 +212,7 @@ fun RowScope.PfccElementBox(label: String, sum: Double) {
             modifier = Modifier
                 .align(alignment = Alignment.CenterEnd),
             fontSize = 15.sp,
-            text = "${sum}/0"
+            text = "${sum}/${limit}"
         )
     }
 }
@@ -208,7 +242,7 @@ fun MealRow(meal: Meal, navController: NavController, dish: Dish,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(dish.dishName, fontSize = 20.sp)
+            Text(dish.name, fontSize = 20.sp)
             Text("${meal.mealDate} ${meal.mealTime}", fontSize = 14.sp)
             Row(Modifier.fillMaxWidth().padding(5.dp)) {
                 Text("Б: ${meal.pro}", Modifier.weight(0.2f), fontSize = 14.sp)
@@ -328,8 +362,8 @@ fun addDay(date: String, delta: Int): String {
 fun MainScreenPreview() {
     val navController = rememberNavController()
     val fakeDishes = listOf(
-        Dish(dishName = "омлет", pro = 10.0, fat = 10.0, carbs = 10.0, cal = 10.0),
-        Dish(dishName = "макароны", pro = 10.0, fat = 10.0, carbs = 10.0, cal = 10.0),
+        Dish(name = "омлет", pro = 10.0, fat = 10.0, carbs = 10.0, cal = 10.0),
+        Dish(name = "макароны", pro = 10.0, fat = 10.0, carbs = 10.0, cal = 10.0),
     )
     val fakeMeals = listOf(
         Meal(dishId = fakeDishes[0].id, weight = 200.0, pro = 20.0, fat = 20.0, carbs = 20.0, cal = 10.0),
@@ -337,5 +371,6 @@ fun MainScreenPreview() {
     )
     var date = "2026-02-12"
     MainContent(navController = navController, meals = fakeMeals, dishes = fakeDishes,
-        date = date, onDateChange = {}, onDelete = {})
+        date = date, onDateChange = {}, onDelete = {}, userLimitPro = 60.0
+    )
 }

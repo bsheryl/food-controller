@@ -43,6 +43,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.datastore.preferences)
     debugImplementation(libs.ui.tooling)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.room.runtime)
