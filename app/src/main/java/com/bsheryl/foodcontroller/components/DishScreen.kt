@@ -17,6 +17,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,6 +39,11 @@ import com.bsheryl.foodcontroller.viewmodel.DishViewModel
 
 @Composable
 fun DishScreen(navController: NavController, dishViewModel: DishViewModel) {
+    DisposableEffect(Unit) {
+        onDispose {
+            dishViewModel.resetSelectedDish()
+        }
+    }
     val dish by dishViewModel.selectedDish.collectAsState()
     DishContent(navController = navController, dish = dish,
         onDishChanged = { updatedDish -> dishViewModel.updateDish(updatedDish)},
@@ -45,7 +52,7 @@ fun DishScreen(navController: NavController, dishViewModel: DishViewModel) {
 }
 
 @Composable
-fun DishContent(navController: NavController, dish: Dish?,
+fun DishContent(navController: NavController, dish: Dish? = Dish(),
                             onDishChanged: (Dish) -> Unit, updateDish: () -> Unit) {
     val currentDish = dish ?: Dish()
     val numbericKeyboard = KeyboardOptions(keyboardType = KeyboardType.Number,

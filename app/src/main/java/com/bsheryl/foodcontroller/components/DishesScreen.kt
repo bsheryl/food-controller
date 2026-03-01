@@ -19,10 +19,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,12 +71,33 @@ fun DishesContent(navController: NavController, dishes: List<Dish>, onDelete: (D
             )
         }
     ) {
+        var searchQuery by remember { mutableStateOf("") }
+
+        val filteredDishes by remember(searchQuery, dishes) {
+            derivedStateOf {
+                if (searchQuery.isEmpty()) dishes
+                else dishes.filter { it.name.contains(searchQuery, ignoreCase = true) }
+            }
+        }
+
         Column(modifier = Modifier.fillMaxWidth()) {
             Box(
-                modifier = Modifier.fillMaxWidth().padding(it),
+                modifier = Modifier.fillMaxWidth().padding(it)
+                    ,
                 contentAlignment = Alignment.Center
             ) {
-                DishesList(dishes = dishes, navController = navController, onDelete = onDelete,
+                TextField(
+                    value = searchQuery, onValueChange = { searchQuery = it},
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {Text("Поиск")}
+                )
+            }
+            Box(
+                modifier = Modifier.fillMaxWidth()/*.padding(it)*/,
+                contentAlignment = Alignment.Center
+            ) {
+//                DishesList(dishes = dishes, navController = navController, onDelete = onDelete,
+                DishesList(dishes = filteredDishes, navController = navController, onDelete = onDelete,
                     date = date)
             }
             // Кнопка добавить прием пищи

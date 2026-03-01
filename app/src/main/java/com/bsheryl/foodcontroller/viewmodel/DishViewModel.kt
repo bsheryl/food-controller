@@ -51,4 +51,8 @@ class DishViewModel(application: Application): ViewModel() {
     fun getById(id: String?): Flow<Dish> {
         return dishRepository.getById(id)
     }
+
+    fun resetSelectedDish() {
+        _selectedDish.value = Dish()
+    }
 }
